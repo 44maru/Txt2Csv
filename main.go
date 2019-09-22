@@ -54,9 +54,9 @@ func convertTxt2Csv(fileName string) {
 	}
 	defer fp.Close()
 
-	file, err := os.OpenFile("./week2.csv", os.O_WRONLY|os.O_CREATE, 0600)
+	file, err := os.OpenFile("./result.csv", os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
-		failOnError("week2.csvのオープンに失敗しました", err)
+		failOnError("result.csvのオープンに失敗しました", err)
 	}
 	defer file.Close()
 
@@ -111,5 +111,5 @@ func convertTxt2Csv(fileName string) {
 	}
 
 	writer.Flush()
-	fmt.Println("week2.csvを出力しました")
+	fmt.Println("result.csvを出力しました")
 }

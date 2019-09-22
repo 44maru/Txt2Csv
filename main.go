@@ -23,7 +23,10 @@ const orderNo = "注文オーダー番号"
 var enc = simplifiedchinese.GBK
 
 func main() {
-	useBufioScanner(os.Args[1])
+	if len(os.Args) != 2 {
+		failOnError("main.exeにテキストファイルをドラッグ&ドロップしてください", nil)
+	}
+	convertTxt2Csv(os.Args[1])
 	waitEnter()
 }
 
@@ -43,11 +46,7 @@ func waitEnter() {
 	scanner.Scan()
 }
 
-func useBufioScanner(fileName string) {
-
-	var isCsvItemLine bool = false
-	var isOrderNoLine bool = false
-	var itemList []string
+func convertTxt2Csv(fileName string) {
 
 	fp, err := os.Open(fileName)
 	if err != nil {
@@ -66,7 +65,12 @@ func useBufioScanner(fileName string) {
 		failOnError("CSVファイルの初期化に失敗しました", err)
 	}
 
-	writer := csv.NewWriter(file)
+	isCsvItemLine := false
+	isOrderNoLine := false
+	var itemList []string
+	orderNoMap := map[string]bool{}
+
+	writer := csv.NewWriter(transform.NewWriter(file, japanese.ShiftJIS.NewEncoder()))
 
 	r := transform.NewReader(fp, japanese.ShiftJIS.NewDecoder())
 	scanner := bufio.NewScanner(r)
@@ -89,9 +93,19 @@ func useBufioScanner(fileName string) {
 			isCsvItemLine = false
 
 		} else if isOrderNoLine {
-			itemList = append(itemList, scanner.Text())
+			orderNo := scanner.Text()
+			var isAlreadyExists bool = orderNoMap[orderNo]
+
+			if isAlreadyExists {
+				itemList = []string{}
+				isOrderNoLine = false
+				continue
+			}
+
+			itemList = append(itemList, orderNo)
 			isOrderNoLine = false
 			writer.Write(itemList)
+			orderNoMap[orderNo] = true
 			itemList = []string{}
 		}
 	}
